@@ -32,10 +32,13 @@ jobs:
       # 'tools' 包，与新版 SDK 仓库不兼容会直接失败，且白费 1-2 分钟。缺失的平台组件 AGP 会自动下载。
 
       # Gradle 缓存由 setup-gradle 统一管理（依赖、wrapper、构建缓存一并缓存）
+      # 关键：默认只有默认分支的构建才写缓存，tag 触发的发版构建是只读的——
+      # 必须显式允许写，否则打 tag 发版永远冷构建，缓存形同虚设
       - name: 安装 Gradle 并开启依赖缓存
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+          cache-read-only: false
 
       # 版本号由标签自动注入：v0.1.0 -> versionName 0.1.0，versionCode 用 run 序号，本地零修改
       - name: 构建 APK（仅 arm64-v8a）
