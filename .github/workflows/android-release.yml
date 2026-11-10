@@ -1,8 +1,13 @@
 name: android-release
 
-# 推送 v* 标签触发云端构建 APK 并发版；手动触发只构建不发版（用于验证缓存提速）
+# 双触发：
+#   1. push main → 只构建不发布（写入 Gradle 缓存供所有 tag 复用 + 验证主干构建可用）
+#   2. push v* 标签 → 构建并发布 Release
+#   注意：Actions 缓存按 ref 隔离，只有默认分支（main）写的缓存才能被所有构建读取，
+#   仅靠 tag 触发会导致缓存永远命不中（实测踩坑）
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
 
@@ -11,7 +16,7 @@ permissions:
 
 concurrency:
   group: android-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: true   # main 连续推送时取消旧构建，不浪费排队时间
 
 jobs:
   build:

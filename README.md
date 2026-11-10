@@ -11,12 +11,14 @@ git tag v0.1.0
 git push origin v0.1.0   # 推送标签即触发云端构建与发版
 ```
 
-推送 `v*` 标签后，两条流水线并行启动：
+推送 `v*` 标签后，安卓构建流水线并行启动（轻量 release 流水线仅 tag 触发）：
 
-| 流水线 | 说明 |
-|--------|------|
-| release | 秒级验证：生成构建信息产物 + sha256 校验文件，自动发布到 GitHub Release |
-| android-release | Gradle 云端构建 APK（仅 arm64-v8a），附带 sha256 后发布到 Release |
+| 触发 | 行为 |
+|------|------|
+| push main | 安卓构建但**不发布**：验证主干可构建 + 写入 Gradle 缓存（供所有 tag 复用） |
+| push v* 标签 | 安卓构建 + 自动发布 Release（读 main 写的缓存，冷启动变热启动） |
+
+> Actions 缓存按 ref 隔离：只有 main 写的缓存才能被 tag 构建读取，纯 tag 触发会导致缓存永远命不中。
 
 ## 安卓构建提速要点（已内置）
 
